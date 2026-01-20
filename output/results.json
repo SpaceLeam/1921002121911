@@ -1,0 +1,13 @@
+[
+  {
+    "attack_name": "Boolean True",
+    "bypass_detected": true,
+    "confidence_score": 90,
+    "confidence_level": "HIGH",
+    "reason": "Status Code Shift: 403 \u2192 200",
+    "response_status": 200,
+    "response_length": 54,
+    "baseline_status": 403,
+    "baseline_length": 42
+  }
+]

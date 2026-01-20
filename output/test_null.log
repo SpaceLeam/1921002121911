@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/kokuroshesh/learnhk/main.py", line 11, in <module>
+    from core.engine import AttackEngine
+  File "/home/kokuroshesh/learnhk/core/engine.py", line 11, in <module>
+    from modules.race import RaceConditionModule
+  File "/home/kokuroshesh/learnhk/modules/race.py", line 13, in <module>
+    class RaceConditionModule:
+    ...<63 lines>...
+            """
+  File "/home/kokuroshesh/learnhk/modules/race.py", line 28, in RaceConditionModule
+    def execute_race(self, send_func: Callable) -> List[requests.Response]:
+                                                   ^^^^
+NameError: name 'List' is not defined. Did you mean: 'list'?

