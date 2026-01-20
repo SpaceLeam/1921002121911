@@ -43,7 +43,8 @@ class ResponseAnalyzer:
     """Analyzes responses to detect successful 2FA bypasses."""
     
     # Threshold for considering response length significantly different
-    LENGTH_DIFF_THRESHOLD = 0.20  # 20% difference (more lenient than 10%)
+    # Lowered to 5% for detecting subtle bypasses (was 20%)
+    LENGTH_DIFF_THRESHOLD = 0.05
     
     def __init__(self, baseline_response: Optional[requests.Response] = None):
         """
@@ -53,6 +54,7 @@ class ResponseAnalyzer:
             baseline_response: Response object of a normal failed 2FA attempt
         """
         self.baseline = None
+        self.baseline_text = ""  # Store baseline text for keyword comparison
         if baseline_response:
             self.set_baseline(baseline_response)
         logger.info("ResponseAnalyzer initialized")
@@ -60,6 +62,7 @@ class ResponseAnalyzer:
     def set_baseline(self, response: requests.Response):
         """Set baseline from a response object."""
         self.baseline = ResponseSignature.from_response(response)
+        self.baseline_text = response.text.lower()  # Cache baseline text
         logger.info(f"Baseline set: Status {self.baseline.status_code}, Length {self.baseline.length}")
     
     def is_bypass(self, attack_response: requests.Response) -> Tuple[bool, str]:
@@ -102,22 +105,15 @@ class ResponseAnalyzer:
                 return True, f"New Auth Cookies Issued: {important_cookies}"
         
         # 4. SUCCESS KEYWORDS IN RESPONSE (Token/data leak)
-        # Sometimes status stays same but body contains success indicators
+        # Compare against cached baseline text
         success_keywords = ['access_token', 'jwt', '"success":true', '"success": true', 
                            'dashboard', 'welcome', 'authenticated', '"valid":true', '"valid": true']
         
         response_text = attack_response.text.lower()
-        baseline_text = getattr(self.baseline, '_text', '').lower() if hasattr(self.baseline, '_text') else ''
-        
-        # Cache baseline text for comparison
-        if not hasattr(self.baseline, '_text'):
-            # We need to store this on first run - workaround since we only have signature
-            pass
         
         for keyword in success_keywords:
-            if keyword.lower() in response_text:
-                # Check if keyword exists in baseline
-                # If not, it's a new success indicator
+            # Check if keyword is in response but NOT in baseline
+            if keyword.lower() in response_text and keyword.lower() not in self.baseline_text:
                 return True, f"Success Keyword Found: '{keyword}'"
         
         # 5. JSON STRUCTURE CHANGES

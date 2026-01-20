@@ -145,18 +145,14 @@ def main():
     
     print("\n" + "="*70)
     
-    # Initialize attack engine
-    # Note: Proxy support needs to be passed to requester
+    # Initialize attack engine with proxy support
     engine = AttackEngine(
         target_url=args.target,
         session_manager=session_manager,
         test_payload=test_payload,
-        otp_param=args.otp_param
+        otp_param=args.otp_param,
+        proxy=args.proxy
     )
-    
-    # If proxy is set, update requester
-    if args.proxy:
-        engine.requester.proxy = {"http": args.proxy, "https": args.proxy}
     
     # Run all attacks
     try:

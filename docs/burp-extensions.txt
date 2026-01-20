@@ -1,0 +1,199 @@
+# Burp Suite BApp Extensions for 2FA Testing Workflow
+# Recommended extensions untuk complement TfaBuster
+
+## ESSENTIAL (Must Have) ⭐⭐⭐⭐⭐
+
+### 1. Turbo Intruder
+**Rating**: ⭐⭐⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Race condition testing - gate mechanism untuk simultaneous requests
+**Why**: Alternative manual untuk TfaBuster's race_async.py module
+**Install**: Burp → Extender → BApp Store → Search "Turbo Intruder"
+**Link**: Send large numbers of HTTP requests and analyze the results
+
+### 2. Copy as Python httpx
+**Rating**: ⭐⭐⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Export requests as Python httpx code (EXACT sama dengan TfaBuster!)
+**Why**: Instant payload generation - langsung compatible dengan race_async.py
+**Install**: Burp → BApp Store → "Copy as Python httpx"
+**Link**: Export HTTP/1.1 and HTTP/2 requests for use in Python
+
+### 3. Auth Analyzer
+**Rating**: ⭐⭐⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Repeat requests dengan different headers/tokens, detect auth bypass
+**Why**: Perfect untuk pre-scan sebelum TfaBuster automated testing
+**Install**: Burp → BApp Store → "Auth Analyzer"
+**Link**: Find authorization bugs by repeating Proxy requests with self defined headers
+
+---
+
+## HIGHLY RECOMMENDED ⭐⭐⭐⭐
+
+### 4. Autorize
+**Rating**: ⭐⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Auto-detect authorization enforcement issues
+**Why**: Identify targets untuk TfaBuster CSRF module
+**Install**: Burp → BApp Store → "Autorize"
+**Link**: Automatically detects authorization enforcement
+
+### 5. JWT Editor
+**Rating**: ⭐⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: JWT manipulation untuk JWT-based 2FA systems
+**Why**: Edit, sign, verify JWTs - test token bypass
+**Install**: Burp → BApp Store → "JWT Editor"
+**Link**: Edit, sign, verify, encrypt and decrypt JSON Web Tokens
+
+### 6. Additional CSRF Checks
+**Rating**: ⭐⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Passive CSRF vulnerability detection
+**Why**: Auto-flag CSRF issues untuk TfaBuster follow-up
+**Install**: Burp → BApp Store → "Additional CSRF Checks"
+**Link**: Performs additional checks for CSRF vulnerabilities
+
+---
+
+## USEFUL (Nice to Have) ⭐⭐⭐
+
+### 7. Google Authenticator
+**Rating**: ⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Generate valid TOTP codes di session handling rules
+**Why**: Baseline testing dengan valid OTPs
+**Install**: Burp → BApp Store → "Google Authenticator"
+**Link**: Generate Google Authenticator OTPs in session handling rules
+
+### 8. Multi-TOTP Authenticator
+**Rating**: ⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Manage multiple TOTP devices
+**Why**: Testing berbagai 2FA providers
+**Install**: Burp → BApp Store → "Multi-TOTP Authenticator"
+**Link**: Manage multiple time-based one-time passwords (TOTPs) simultaneously
+
+### 9. Copy as cURL Command
+**Rating**: ⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Quick PoC generation
+**Why**: Export untuk documentation (complement TfaBuster reporting)
+**Install**: Burp → BApp Store → "Copy as cURL"
+**Link**: Standard curl export
+
+### 10. Copy as Python-Requests
+**Rating**: ⭐⭐⭐
+**Category**: Professional Community
+**Use Case**: Alternative Python export
+**Why**: Fallback kalau ga punya httpx
+**Install**: Burp → BApp Store → "Copy As Python-Requests"
+**Link**: Copies selected request(s) as Python-Requests invocations
+
+---
+
+## OPTIONAL (Advanced Users) ⭐⭐
+
+### 11. Logger++
+**Rating**: ⭐⭐
+**Category**: Professional Community
+**Use Case**: Advanced logging with filters
+**Why**: Better request/response tracking
+**Install**: Burp → BApp Store → "Logger++"
+**Link**: Logs requests and responses for all Burp tools in a sortable table
+**Note**: High memory usage
+
+### 12. HTTP Request Smuggler
+**Rating**: ⭐⭐
+**Category**: Professional Community DAST
+**Use Case**: Request smuggling testing
+**Why**: Advanced bypass techniques
+**Install**: Burp → BApp Store → "HTTP Request Smuggler"
+**Link**: Launch HTTP Request Smuggling attacks
+**Note**: Advanced technique, not directly 2FA-related
+
+### 13. Collaborator Everywhere
+**Rating**: ⭐⭐
+**Category**: Professional
+**Use Case**: Out-of-band detection
+**Why**: Blind callbacks detection
+**Install**: Burp → BApp Store → "Collaborator Everywhere"
+**Link**: Inject Burp Collaborator headers
+
+---
+
+## WORKFLOW INTEGRATION
+
+**Step 1: Manual Discovery (Burp + Extensions)**
+```
+1. Use Auth Analyzer → identify weak auth
+2. Use Additional CSRF Checks → flag CSRF issues
+3. Use JWT Editor → test token manipulation
+4. Use Turbo Intruder → manual race condition
+```
+
+**Step 2: Export to TfaBuster**
+```
+Right-click request → Extensions → Copy as Python httpx
+Paste directly into TfaBuster test case or as --payload
+```
+
+**Step 3: Automated Scan (TfaBuster)**
+```bash
+python main.py --target <url> --payload <from-burp>
+```
+
+**Step 4: Compare & Report**
+```
+Manual findings (Burp) + Automated (TfaBuster) = Complete assessment
+```
+
+---
+
+## INSTALLATION GUIDE
+
+### Quick Install (Top 3 Essential)
+1. Open Burp Suite
+2. Go to: Extender → BApp Store
+3. Search and install:
+   - "Turbo Intruder"
+   - "Copy as Python httpx"
+   - "Auth Analyzer"
+
+### Full Install (All Recommended)
+Install all extensions marked ⭐⭐⭐⭐⭐ and ⭐⭐⭐⭐
+
+### Memory Warning
+Logger++ = HIGH memory usage
+Skip if system RAM < 4GB available
+
+---
+
+## QUICK REFERENCE
+
+**Best for TfaBuster Integration**:
+- Copy as Python httpx (instant payload)
+- Auth Analyzer (pre-scan)
+- Turbo Intruder (manual comparison)
+
+**Best for Manual Testing**:
+- JWT Editor
+- Autorize
+- Additional CSRF Checks
+
+**Best for Documentation**:
+- Copy as cURL
+- Copy as Python-Requests
+
+---
+
+## NOTES
+
+- All extensions FREE via BApp Store
+- No Phase 4 Burp extension needed (existing tools cukup!)
+- TfaBuster = CLI automation, Burp = manual workflow
+- Both complement, no tight coupling required
+
+Last Updated: 2026-01-20
+TfaBuster Version: Production-Ready (Phase 1-3 Complete)

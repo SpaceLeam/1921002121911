@@ -1,8 +1,9 @@
 """
 Advanced HTTP requester with WAF evasion capabilities.
-Features: UA rotation, jitter delays, browser-like headers, retry logic.
+Features: UA rotation, jitter delays, browser-like headers, retry logic, adaptive rate limiting.
+NOTE: For TLS fingerprinting bypass, install curl-cffi in venv and uncomment line below.
 """
-import requests
+import requests  # Use: from curl_cffi import requests (for TLS fingerprinting)
 import time
 import random
 from typing import Optional, Dict, Any
@@ -51,6 +52,7 @@ class SmartRequester:
         self.jitter_range = jitter_range
         self.max_retries = max_retries
         self.proxy = {"http": proxy, "https": proxy} if proxy else None
+        self.impersonate = None  # Optional TLS fingerprinting (requires curl_cffi)
         
         # Setup session state
         if session_cookies:
@@ -114,14 +116,19 @@ class SmartRequester:
                 logger.debug(f"Sending {method} request (attempt {attempt}/{self.max_retries})")
                 
                 if method.upper() == 'POST':
-                    response = self.session.post(
-                        self.target, 
-                        json=payload, 
-                        headers=headers, 
-                        proxies=self.proxy,
-                        timeout=10,
-                        allow_redirects=False  # Don't auto-follow redirects
-                    )
+                    # Build request kwargs
+                    kwargs = {
+                        'json': payload,
+                        'headers': headers,
+                        'proxies': self.proxy,
+                        'timeout': 10,
+                        'allow_redirects': False
+                    }
+                    # Add impersonate only if using curl_cffi
+                    if self.impersonate:
+                        kwargs['impersonate'] = self.impersonate
+                    
+                    response = self.session.post(self.target, **kwargs)
                 elif method.upper() == 'GET':
                     response = self.session.get(
                         self.target, 
@@ -145,6 +152,11 @@ class SmartRequester:
                     return None
                 
                 logger.info(f"Response: {response.status_code} | Length: {len(response.content)}")
+                
+                # Check for rate limiting before returning
+                if self._handle_rate_limit(response):
+                    continue  # Retry after rate limit wait
+                
                 return response
                 
             except requests.exceptions.Timeout:
@@ -165,6 +177,57 @@ class SmartRequester:
         
         logger.error("Max retries exceeded")
         return None
+    
+    def _handle_rate_limit(self, response: requests.Response) -> bool:
+        """
+        Handle rate limiting responses adaptively.
+        
+        Args:
+            response: Response object to check
+            
+        Returns:
+            True if should retry (after waiting), False otherwise
+        """
+        # 429 Too Many Requests - rate limited
+        if response.status_code == 429:
+            retry_after = response.headers.get('Retry-After', '60')
+            
+            # Parse Retry-After (can be seconds or HTTP date)
+            try:
+                wait_seconds = int(retry_after)
+            except ValueError:
+                # If not integer, assume it's HTTP date - default to 60s
+                wait_seconds = 60
+            
+            logger.warning(f"[!] Rate limited (429). Waiting {wait_seconds}s before retry...")
+            
+            # Countdown display
+            for remaining in range(wait_seconds, 0, -1):
+                if remaining % 10 == 0 or remaining <= 5:
+                    logger.info(f"    Resuming in {remaining}s...")
+                time.sleep(1)
+            
+            logger.info("    Resuming scan...")
+            return True  # Retry
+        
+        # 503 Service Unavailable - server overloaded
+        elif response.status_code == 503:
+            wait_seconds = 30
+            logger.warning(f"[!] Service unavailable (503). Waiting {wait_seconds}s...")
+            time.sleep(wait_seconds)
+            return True  # Retry
+        
+        # 403 with WAF signature - stop immediately
+        elif response.status_code == 403:
+            response_text = response.text.lower()
+            waf_indicators = ['cloudflare', 'imperva', 'akamai', 'access denied', 'firewall']
+            
+            if any(indicator in response_text for indicator in waf_indicators):
+                logger.error("[!] WAF block detected (403). Aborting scan to avoid IP ban.")
+                logger.error("    Consider using proxy rotation or reducing scan speed.")
+                return False  # Stop scanning
+        
+        return False  # No rate limit, proceed normally
     
     def get_session_cookies(self) -> Dict[str, str]:
         """Return current session cookies as dict."""

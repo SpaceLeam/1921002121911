@@ -1,0 +1,45 @@
+# Sample YAML configuration file for TfaBuster
+# Use with: python main.py --config config/targets.yaml
+
+targets:
+  - name: "Test Lab - Basic Vulnerabilities"
+    url: "http://127.0.0.1:5555/api/verify-basic"
+    otp_param: "otp"
+    baseline_payload:
+      otp: "0000"
+    rate_limit: null  # No rate limit for local testing
+    include_race: false
+    proxy: null
+    
+  - name: "Test Lab - CSRF Bypass"
+    url: "http://127.0.0.1:5555/api/verify-csrf"
+    otp_param: "otp"
+    baseline_payload:
+      otp: "9999"
+    cookies: null  # Test without cookies
+    
+  - name: "Test Lab - Rate Limited"
+    url: "http://127.0.0.1:5555/api/verify-rate-limited"
+    otp_param: "otp"
+    baseline_payload:
+      otp: "0000"
+    rate_limit: 5  # 5 requests per minute
+    
+  - name: "Test Lab - OAuth Bypass"
+    url: "http://127.0.0.1:5555/api/verify-oauth-bypass"
+    otp_param: "otp"
+    baseline_payload:
+      otp: "0000"
+      
+  - name: "Test Lab - Race Condition"
+    url: "http://127.0.0.1:5555/api/verify-race-condition"
+    otp_param: "otp"
+    baseline_payload:
+      otp: "0000"
+      user_id: "test123"
+    include_race: true
+
+global_settings:
+  output_dir: "output/"
+  verbose: true
+  save_requests: true
